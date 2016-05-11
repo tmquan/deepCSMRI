@@ -24,10 +24,14 @@ import pandas 	as pd
 ##################################################################
 from sklearn.cross_validation 	import KFold
 from keras.models 				import Sequential
-from keras.layers.core 			import Dense, Dropout, Activation
+
+from keras.layers	 			import Dense, Dropout, Activation, Reshape
+from keras.layers				import Convolution3D, MaxPooling3D, UpSampling3D
+
 from keras.optimizers 			import SGD, Adam, RMSprop
 from keras.utils 				import np_utils
 from keras.utils.generic_utils 	import Progbar
 
+from keras.utils.visualize_util import plot
 from matplotlib.pyplot 			import cm
 from graphviz 					import Digraph 
