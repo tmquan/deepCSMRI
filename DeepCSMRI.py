@@ -32,6 +32,8 @@ from keras.optimizers 			import SGD, Adam, RMSprop
 from keras.utils 				import np_utils
 from keras.utils.generic_utils 	import Progbar
 
+from keras.utils.visualize_util import model_to_dot
 from keras.utils.visualize_util import plot
 from matplotlib.pyplot 			import cm
 from graphviz 					import Digraph 
+from IPython.display import SVG

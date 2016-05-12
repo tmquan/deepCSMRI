@@ -40,10 +40,9 @@ def generateData():
 	plt.imshow(np.abs(images[0,0,0,:,:]), cmap=cm.gray)
 	plt.axis('off')
 	plt.show()
-
-    np.save('images.npy', images)
-
-    return images
+	
+	np.save('images.npy', images)
+	return images
 
 
 if __name__ == '__main__':
