@@ -19,14 +19,14 @@ logger.setLevel(logging.DEBUG)
 ######################################################################################
 	
 def get_model():
-	devs = [mx.gpu(0)]
+	devs = [mx.gpu(1)]
 	# devs = [mx.cpu(i) for i in range(8)]
 	# network = get_unet()
 	network = get_res_unet()
 	
 	model = mx.model.FeedForward(ctx=devs,
 		symbol          = network,
-		num_epoch       = 10,
+		num_epoch       = 1,
 		learning_rate	= 0.001,
         wd				= 0.0000000001,
         momentum		= 0.99,
@@ -85,7 +85,7 @@ def train():
 	##################################################################################
 	nb_iter 		= 201
 	epochs_per_iter = 1 
-	batch_size 		= 1
+	batch_size 		= 100
 	
 	model = get_model()
 	
