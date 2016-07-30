@@ -39,3 +39,5 @@ from IPython.display import SVG
 nb_folds 		= 3
 epochs_per_iter = 1
 batch_size 		= 1
+width=256
+tempo=20

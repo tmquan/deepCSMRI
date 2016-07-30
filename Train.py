@@ -8,7 +8,7 @@ Created on Sun Feb 21 10:12:52 2016
 
 @author: tmquan
 """
-
+from DeepCSMRI 		import *
 from Model 			import *
 from Utility		import *
 from GeneratePair 	import * # Import the data generation: zerofilling, full recon, mask
@@ -19,7 +19,7 @@ logger.setLevel(logging.DEBUG)
 ######################################################################################
 	
 def get_model():
-	devs = [mx.gpu(1)]
+	devs = [mx.gpu(2)]
 	# devs = [mx.cpu(i) for i in range(8)]
 	# network = get_unet()
 	network = get_res_unet()
@@ -67,25 +67,26 @@ def train():
 	# R = np.load("R_train.npy")
 	
 	##################################################################################
-	# One hot code the full reconstruction
-	y = np.reshape(y, (-1, 400*128*128))
-	print y.shape
-	current_shape = y.flatten().shape[0]
-	print current_shape
-	# one_hot_shape = [current_shape, 256]
+	# # One hot code the full reconstruction
+	# y = np.reshape(y, (-1, 400*width*width))
+	# print y.shape
+	# current_shape = y.flatten().shape[0]
+	# print current_shape
+	# # one_hot_shape = [current_shape, 256]
 	
-	# new_y = np.zeros((current_shape, 256), dtype=np.int32)
-	# new_y[np.arange(256), y] = 1
-	new_y = np.eye(256, dtype=np.int32)[y]
-	print "New y"
-	print new_y.shape
-	
-	y = new_y 	# Recast the y
-	y = np.reshape(y, (-1, 256*20, 128, 128))
+	# # new_y = np.zeros((current_shape, 256), dtype=np.int32)
+	# # new_y[np.arange(256), y] = 1
+	# new_y = np.eye(256, dtype=np.int32)[y]
+	# print "New y"
+	# print new_y.shape
+	# assert(np.argmax(new_y, axis=1)==y)
+	# # assert(np.sum(new_y, axis=1)==y)
+	# y = new_y 	# Recast the y
+	# y = np.reshape(y, (-1, 256*tempo, width, width))
 	##################################################################################
 	nb_iter 		= 201
 	epochs_per_iter = 1 
-	batch_size 		= 100
+	batch_size 		= 1
 	
 	model = get_model()
 	
