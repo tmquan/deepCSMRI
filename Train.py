@@ -25,7 +25,7 @@ def get_model():
 	
 	model = mx.model.FeedForward(ctx=devs,
 		symbol          = network,
-		num_epoch       = 1,
+		num_epoch       = 100,
 		learning_rate	= 0.001,
         wd				= 0.0000000001,
         momentum		= 0.99,
@@ -54,6 +54,8 @@ def train():
 	
 	# Xz, Xf = generatePair(images)
 	X, y, R = generatePair(images)
+	X = X/255.0
+	y = y/255.0
 	np.save("X_train.npy", X)
 	np.save("y_train.npy", y)
 	np.save("R_train.npy", R)
@@ -114,7 +116,7 @@ def train():
 							eval_metric = mx.metric.RMSE(),
 							eval_data   = data_valid)
 			del X_train, X_valid, y_train, y_valid
-		# if i%1==0:
-		model.save('model', iter)
+		if i%1==0:
+			model.save('model', iter)
 if __name__ == '__main__':
 	train()

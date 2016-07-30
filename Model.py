@@ -66,7 +66,7 @@ def get_res_unet():
 	net 	= mx.symbol.Variable("data")
 	# net 	= net-128
 	# net 	= net/128
-	net 	= net/255
+	# net 	= net/255
 	
 	net		= convolution_module(net, kernel_size, pad_size, filter_count=filter_count*1, down_pool=True)
 	pool1	= net
