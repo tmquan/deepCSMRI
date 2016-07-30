@@ -34,8 +34,8 @@ def generateData():
 	# from (num, dimz, dimy, dimx)
 	# to   (num, dimk, dimz, dimy, dimx)
 	# by inserting singleton dimension to axis 1
-	images = np.reshape(images, (-1,20,256,256)) #
-	# images = np.expand_dims(images, axis=1)
+	# images = np.reshape(images, (-1,20,256,256)) #
+	images = np.expand_dims(images, axis=1)
 	print images.shape
 
 

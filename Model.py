@@ -8,7 +8,26 @@ Created on Sat Feb 20 21:03:22 2016
 
 from Utility import *
 
+# class NumpySoftmax(mx.operator.NumpyOp):
+    # def __init__(self):
+        # super(NumpySoftmax, self).__init__(False)
+    
+    # def list_arguments(self):
+        # return ['data', 'label']
 
+    # def list_outputs(self):
+        # return ['output']
+		
+	# # One hot code the full reconstruction
+	# y = np.reshape(y, (-1, 20*256*256))
+	# print y.shape
+	# current_shape = y.flatten().shape[0]
+	# print current_shape
+	# # one_hot_shape = [current_shape, 256]
+	
+	# # new_y = np.zeros((current_shape, 256), dtype=np.int32)
+	# new_y = np.eye(256, dtype=np.int32)[y]
+	# print new_y.shape
 def residual_factory(data, num_filter, kernel, stride, pad):	
 	identity_data 	= data
 	conv1 			= mx.symbol.Convolution(data = data, num_filter = num_filter, kernel = kernel, stride = stride, pad = pad)
@@ -27,7 +46,7 @@ def residual_factory(data, num_filter, kernel, stride, pad):
 	
 	return act3
 
-def convolution_module(net, kernel_size, pad_size, filter_count, stride=(1, 1), work_space=2048, batch_norm=True, down_pool=False, up_pool=False, act_type="relu", convolution=False, residual=True):
+def convolution_module(net, kernel_size, pad_size, filter_count, stride=(1, 1), work_space=4096, batch_norm=True, down_pool=False, up_pool=False, act_type="relu", convolution=False, residual=True):
 	if up_pool:
 		net = mx.symbol.Deconvolution(net, kernel=(2, 2), pad=(0, 0), stride=(2, 2), num_filter=filter_count, workspace = work_space)
 		net = mx.symbol.BatchNorm(net)
@@ -61,12 +80,15 @@ def get_res_unet():
 	# Setting hyper parameter
 	kernel_size 	= (3, 3)
 	pad_size 		= (1, 1) # For the same size of filtering
-	filter_count 	= 16	 # Original unet use 64 and 2 layers of conv
-
+	filter_count 	= 40	 # Original unet use 64 and 2 layers of conv
+	
 	net 	= mx.symbol.Variable("data")
+	data 	= mx.sym.Variable('data')
+	label 	= mx.sym.Variable('softmax_label')
+	
 	# net 	= net-128
 	# net 	= net/128
-	# net 	= net/255
+	net 	= net/255
 	
 	net		= convolution_module(net, kernel_size, pad_size, filter_count=filter_count*1, down_pool=True)
 	pool1	= net
@@ -101,11 +123,22 @@ def get_res_unet():
 	net		= convolution_module(net, kernel_size, pad_size, filter_count=filter_count*1, up_pool=True)
 	
 	net		= mx.symbol.Dropout(net)	
-	net		= convolution_module(net, kernel_size, pad_size, filter_count=20, batch_norm=False, act_type="")
+	net		= convolution_module(net, kernel_size, pad_size, filter_count=256, batch_norm=False, act_type="")
 	
+	# embed_label = mx.sym.Embedding(data=label, input_dim=vocab_size, output_dim=num_embed, name='vocab_embed')
 	# net = mx.symbolbol.Flatten(net)
+	# Reshape the label
+	# src_label 	= mx.symbol.Reshape(data=label, target_shape=(0, 20*256*256))
+	# dst_label   = mx.nd.zeros()
 	net 	= mx.symbol.LogisticRegressionOutput(data=net, name='softmax')
+	# net 	= mx.sym.softmax_cross_entropy(net, label, name="softmax")
 	return net
+	
+	# label = mx.sym.Reshape(data=label, target_shape=(0,))
+	# sm = mx.sym.SoftmaxOutput(data=pred, label=label, name='softmax')
+
+    # return sm
+	
 
 
 	

@@ -47,7 +47,7 @@ def generatePattern(
 ##################################################################
 def test_generatePattern():
     #img = np.zeros(256, 256)
-    pat = generatePattern(256, 256, sampling_rate=0.25, center_ratio=0.4)
+    pat = generatePattern(256, 256, sampling_rate=0.125, center_ratio=0.5)
     plt.imshow(pat, cmap=cm.gray)
     plt.axis('off')
     plt.show()
