@@ -59,7 +59,7 @@ def convolution_module(net, kernel_size, pad_size, filter_count, stride=(1, 1), 
 		
 	if residual:
 		net = mx.symbol.Convolution(data=net, kernel=kernel_size, stride=stride, pad=pad_size, num_filter=filter_count, workspace=work_space)
-		for i in range(3):
+		for i in range(1):
 			net = residual_factory(net, filter_count, kernel_size, stride=(1, 1), pad=(1,1))
 		net = mx.symbol.Convolution(data=net, kernel=kernel_size, stride=stride, pad=pad_size, num_filter=filter_count, workspace=work_space)
 			
@@ -80,7 +80,7 @@ def get_res_unet():
 	# Setting hyper parameter
 	kernel_size 	= (3, 3)
 	pad_size 		= (1, 1) # For the same size of filtering
-	filter_count 	= 40	 # Original unet use 64 and 2 layers of conv
+	filter_count 	= 20	 # Original unet use 64 and 2 layers of conv
 	
 	net 	= mx.symbol.Variable("data")
 	data 	= mx.sym.Variable('data')
@@ -123,7 +123,7 @@ def get_res_unet():
 	net		= convolution_module(net, kernel_size, pad_size, filter_count=filter_count*1, up_pool=True)
 	
 	net		= mx.symbol.Dropout(net)	
-	net		= convolution_module(net, kernel_size, pad_size, filter_count=256, batch_norm=False, act_type="")
+	net		= convolution_module(net, kernel_size, pad_size, filter_count=256*20, batch_norm=False, act_type="")
 	
 	# embed_label = mx.sym.Embedding(data=label, input_dim=vocab_size, output_dim=num_embed, name='vocab_embed')
 	# net = mx.symbolbol.Flatten(net)

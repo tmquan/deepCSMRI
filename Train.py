@@ -55,7 +55,7 @@ def train():
 	
 	# Xz, Xf = generatePair(images)
 	X, y, R = generatePair(images)
-	X = X/255.0
+	# X = X/255.0
 	# y = y/255.0
 	
 	np.save("X_train.npy", X)
@@ -68,7 +68,7 @@ def train():
 	
 	##################################################################################
 	# One hot code the full reconstruction
-	y = np.reshape(y, (-1, 400*256*256))
+	y = np.reshape(y, (-1, 400*128*128))
 	print y.shape
 	current_shape = y.flatten().shape[0]
 	print current_shape
@@ -81,7 +81,7 @@ def train():
 	print new_y.shape
 	
 	y = new_y 	# Recast the y
-	y = np.reshape(y, (-1, 256, 256, 256))
+	y = np.reshape(y, (-1, 256*20, 128, 128))
 	##################################################################################
 	nb_iter 		= 201
 	epochs_per_iter = 1 

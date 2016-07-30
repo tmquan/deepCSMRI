@@ -19,6 +19,7 @@ def generateData():
 			# Read to numpy array
 			# image = skimage.io.imread(fullPath)
 			image = cv2.imread(fullPath, cv2.IMREAD_GRAYSCALE)
+			image = cv2.resize(image, (128, 128)) 
 			print image.shape
 			
 			# Append to the images
@@ -34,8 +35,8 @@ def generateData():
 	# from (num, dimz, dimy, dimx)
 	# to   (num, dimk, dimz, dimy, dimx)
 	# by inserting singleton dimension to axis 1
-	# images = np.reshape(images, (-1,20,256,256)) #
-	images = np.expand_dims(images, axis=1)
+	images = np.reshape(images, (-1,20,128,128)) #
+	# images = np.expand_dims(images, axis=1)
 	print images.shape
 
 
