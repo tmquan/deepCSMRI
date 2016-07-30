@@ -1,54 +1,124 @@
 from DeepCSMRI import * # All the import were added in there
-##################################################################
-def get_model():
-	# Return 3D reconstruction model here
-	model = Sequential()
+import mxnet as mx
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Feb 20 21:03:22 2016
+@author: tmquan
+"""
 
-	model.add(	Convolution3D(48, 3, 3, 3, border_mode='same', input_shape=(3, 30, 256,256))	)
-	model.add(	Activation('relu')	)
+from Utility import *
+
+
+def residual_factory(data, num_filter, kernel, stride, pad):	
+	identity_data 	= data
+	conv1 			= mx.symbol.Convolution(data = data, num_filter = num_filter, kernel = kernel, stride = stride, pad = pad)
+	act1 			= mx.symbol.Activation(data = conv1, act_type='relu')
+	# act1 		    = mx.symbol.Dropout(data = act1, p=0.25) 
 	
-	#
-	model.add(	MaxPooling3D(pool_size=(2, 2, 2))	)
-
-	model.add(	Convolution3D(48, 3, 3, 3, border_mode='same')	)
-	model.add(	Convolution3D(48, 3, 3, 3, border_mode='same')	)
-	model.add(	Activation('relu')	)
+	conv2 			= mx.symbol.Convolution(data = act1, num_filter = num_filter, kernel = kernel, stride = stride, pad = pad)
+	act2 			= mx.symbol.Activation(data = conv2, act_type='relu')
 	
-	# #
-	# model.add(	MaxPooling3D(pool_size=(2, 2, 2))	)
-
-	# model.add(	Convolution3D(48, 3, 3, 3, border_mode='same')
-	# model.add(	Convolution3D(48, 3, 3, 3, border_mode='same')
-	# model.add(	Activation('relu')	)
-
-	# #
-	# model.add(	UpSampling3D(size=(2, 2, 2))	)
-
-	# model.add(	Convolution3D(48, 3, 3, 3, border_mode='same')
-	# model.add(	Convolution3D(48, 3, 3, 3, border_mode='same')
-	# model.add(	Activation('relu')	)
-
-	#
-	model.add(	UpSampling3D(size=(2, 2, 2))	)
-
-	model.add(	Convolution3D(48, 3, 3, 3, border_mode='same')	)
-	model.add(	Convolution3D(48, 3, 3, 3, border_mode='same')	)
-	model.add(	Activation('relu')	)
-
-	# Softmax to 256 class of prediction
-	model.add(	Convolution3D(256, 3, 3, 3, border_mode='same')	)
-	#model.add( 	Reshape((48,256,256))	)
-
-	model.add(	Activation('relu')	)
 	
-	# training phase
-	sgd = SGD(lr=0.003, decay=1e-6, momentum=0.9, nesterov=True)
-	model.compile(loss='categorical_crossentropy', optimizer=sgd)
+	conv3 			= mx.symbol.Convolution(data = act2, num_filter = num_filter, kernel = kernel, stride = stride, pad = pad)
+	conv3 		    = mx.symbol.Dropout(data = conv3, p=0.5) 
+	new_data 		= conv3 + identity_data
+	# new_data		= mx.symbol.Concat(*[conv3, identity_data])
+	act3 			= mx.symbol.Activation(data = new_data, act_type='relu')
+	
+	return act3
 
-	return model
-##################################################################
+def convolution_module(net, kernel_size, pad_size, filter_count, stride=(1, 1), work_space=2048, batch_norm=True, down_pool=False, up_pool=False, act_type="relu", convolution=False, residual=True):
+	if up_pool:
+		net = mx.symbol.Deconvolution(net, kernel=(2, 2), pad=(0, 0), stride=(2, 2), num_filter=filter_count, workspace = work_space)
+		net = mx.symbol.BatchNorm(net)
+		if act_type != "":
+			net = mx.symbol.Activation(net, act_type=act_type)
+	
+	if convolution:
+		net = mx.symbol.Convolution(data=net, kernel=kernel_size, stride=stride, pad=pad_size, num_filter=filter_count, workspace=work_space)
+		net = mx.symbol.Convolution(data=net, kernel=kernel_size, stride=stride, pad=pad_size, num_filter=filter_count, workspace=work_space)
+		
+	if residual:
+		net = mx.symbol.Convolution(data=net, kernel=kernel_size, stride=stride, pad=pad_size, num_filter=filter_count, workspace=work_space)
+		for i in range(3):
+			net = residual_factory(net, filter_count, kernel_size, stride=(1, 1), pad=(1,1))
+		net = mx.symbol.Convolution(data=net, kernel=kernel_size, stride=stride, pad=pad_size, num_filter=filter_count, workspace=work_space)
+			
+	if batch_norm:
+		net = mx.symbol.BatchNorm(net)
+	
+	if act_type != "":
+		net = mx.symbol.Activation(net, act_type=act_type)
+	
+	if down_pool:
+		net = mx.symbol.Convolution(data=net, kernel=kernel_size, stride=stride, pad=pad_size, num_filter=filter_count*2, workspace=work_space)
+		net = mx.symbol.Pooling(net, pool_type="max", kernel=(2, 2), stride=(2, 2))
+
+	
+	return net
+
+def get_res_unet():
+	# Setting hyper parameter
+	kernel_size 	= (3, 3)
+	pad_size 		= (1, 1) # For the same size of filtering
+	filter_count 	= 16	 # Original unet use 64 and 2 layers of conv
+
+	net 	= mx.symbol.Variable("data")
+	# net 	= net-128
+	# net 	= net/128
+	net 	= net/255
+	
+	net		= convolution_module(net, kernel_size, pad_size, filter_count=filter_count*1, down_pool=True)
+	pool1	= net
+	net		= mx.symbol.Dropout(net)
+	
+	net		= convolution_module(net, kernel_size, pad_size, filter_count=filter_count*2, down_pool=True)
+	pool2	= net
+	net		= mx.symbol.Dropout(net)
+	
+	net		= convolution_module(net, kernel_size, pad_size, filter_count=filter_count*4, down_pool=True)
+	pool3	= net
+	net		= mx.symbol.Dropout(net)
+	
+	net		= convolution_module(net, kernel_size, pad_size, filter_count=filter_count*8)
+
+	net		= mx.symbol.Dropout(net)
+	# net		= mx.symbol.Concat(*[pool3, net])
+	net 	= pool3 + net
+	net		= convolution_module(net, kernel_size, pad_size, filter_count=filter_count*4)
+	net		= convolution_module(net, kernel_size, pad_size, filter_count=filter_count*4, up_pool=True)
+	
+	net		= mx.symbol.Dropout(net)	
+	# net		= mx.symbol.Concat(*[pool2, net])
+	net 	= pool2 + net
+	net		= convolution_module(net, kernel_size, pad_size, filter_count=filter_count*2)
+	net		= convolution_module(net, kernel_size, pad_size, filter_count=filter_count*2, up_pool=True)
+	
+	net		= mx.symbol.Dropout(net)
+	# net		= mx.symbol.Concat(*[pool1, net])
+	net 	= pool1 + net
+	net		= convolution_module(net, kernel_size, pad_size, filter_count=filter_count*1)
+	net		= convolution_module(net, kernel_size, pad_size, filter_count=filter_count*1, up_pool=True)
+	
+	net		= mx.symbol.Dropout(net)	
+	net		= convolution_module(net, kernel_size, pad_size, filter_count=20, batch_norm=False, act_type="")
+	
+	# net = mx.symbolbol.Flatten(net)
+	net 	= mx.symbol.LogisticRegressionOutput(data=net, name='softmax')
+	return net
+
+
+	
 if __name__ == '__main__':
-	model = get_model()
-	# # plot(model, to_file='model.png', show_shapes=True)
-	# dot = model_to_dot(model)
-	SVG(model_to_dot(model).create(prog='dot', format='svg'))
+	# Draw the net
+	data 	= mx.symbol.Variable('data')
+	network = get_res_unet()
+	dot = mx.viz.plot_network(network,
+		None,
+		# shape={"data" : (30, 1, 512, 512)}
+		) 
+	dot.graph_attr['rankdir'] = 'BT'
+	
+	
+	
+	

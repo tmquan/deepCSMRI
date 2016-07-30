@@ -1,6 +1,6 @@
 from DeepCSMRI import *
 
-dataDir 	= './data/'		# Pay attention for missing last back slash
+dataDir 	= './data/train/images/'		# Pay attention for missing last back slash
 
 modelsDir 	= './models'
 resultDir 	= './result'
