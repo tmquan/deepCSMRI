@@ -8,26 +8,41 @@ Created on Sat Feb 20 21:03:22 2016
 
 from Utility import *
 
-# class NumpySoftmax(mx.operator.NumpyOp):
-    # def __init__(self):
-        # super(NumpySoftmax, self).__init__(False)
-    
-    # def list_arguments(self):
-        # return ['data', 'label']
 
-    # def list_outputs(self):
-        # return ['output']
-		
-	# # One hot code the full reconstruction
-	# y = np.reshape(y, (-1, 20*256*256))
-	# print y.shape
-	# current_shape = y.flatten().shape[0]
-	# print current_shape
-	# # one_hot_shape = [current_shape, 256]
+
+# def print_inferred_shape(net):
+    # ar, ou, au = net.infer_shape(data=(BATCH_SIZE, 1, INPUT_SIZE, INPUT_SIZE))
+    # print ou
+
+
+def convolution_module(net, kernel_size, pad_size, filter_count, stride=(1, 1), work_space=2048, batch_norm=True, down_pool=False, up_pool=False, act_type="relu", convolution=True):
+    if up_pool:
+        net = mx.sym.Deconvolution(net, kernel=(2, 2), pad=(0, 0), stride=(2, 2), num_filter=filter_count, workspace = work_space)
+        net = mx.sym.BatchNorm(net)
+        if act_type != "":
+            net = mx.sym.Activation(net, act_type=act_type)
+        # print_inferred_shape(net)
+
+    if convolution:
+        conv = mx.sym.Convolution(data=net, kernel=kernel_size, stride=stride, pad=pad_size, num_filter=filter_count, workspace=work_space)
+        net = conv
+        # print_inferred_shape(conv)
+
+    if batch_norm:
+        net = mx.sym.BatchNorm(net)
+
+    if act_type != "":
+        net = mx.sym.Activation(net, act_type=act_type)
+
+    if down_pool:
+        pool = mx.sym.Pooling(net, pool_type="max", kernel=(2, 2), stride=(2, 2))
+        net = pool
+        # print_inferred_shape(net)
+
+    return net
+
+
 	
-	# # new_y = np.zeros((current_shape, 256), dtype=np.int32)
-	# new_y = np.eye(256, dtype=np.int32)[y]
-	# print new_y.shape
 def residual_factory(data, num_filter, kernel, stride, pad):	
 	identity_data 	= data
 	conv1 			= mx.symbol.Convolution(data = data, num_filter = num_filter, kernel = kernel, stride = stride, pad = pad)
@@ -46,99 +61,81 @@ def residual_factory(data, num_filter, kernel, stride, pad):
 	
 	return act3
 
-def convolution_module(net, kernel_size, pad_size, filter_count, stride=(1, 1), work_space=4096, batch_norm=True, down_pool=False, up_pool=False, act_type="relu", convolution=False, residual=True):
-	if up_pool:
-		net = mx.symbol.Deconvolution(net, kernel=(2, 2), pad=(0, 0), stride=(2, 2), num_filter=filter_count, workspace = work_space)
-		net = mx.symbol.BatchNorm(net)
-		if act_type != "":
-			net = mx.symbol.Activation(net, act_type=act_type)
+# def convolution_module(net, kernel_size, pad_size, filter_count, stride=(1, 1), work_space=4096, batch_norm=True, down_pool=False, up_pool=False, act_type="relu", convolution=False, residual=True):
+	# if up_pool:
+		# net = mx.symbol.Deconvolution(net, kernel=(2, 2), pad=(0, 0), stride=(2, 2), num_filter=filter_count, workspace = work_space)
+		# net = mx.symbol.BatchNorm(net)
+		# if act_type != "":
+			# net = mx.symbol.Activation(net, act_type=act_type)
 	
-	if convolution:
-		net = mx.symbol.Convolution(data=net, kernel=kernel_size, stride=stride, pad=pad_size, num_filter=filter_count, workspace=work_space)
-		net = mx.symbol.Convolution(data=net, kernel=kernel_size, stride=stride, pad=pad_size, num_filter=filter_count, workspace=work_space)
+	# if convolution:
+		# net = mx.symbol.Convolution(data=net, kernel=kernel_size, stride=stride, pad=pad_size, num_filter=filter_count, workspace=work_space)
+		# net = mx.symbol.Convolution(data=net, kernel=kernel_size, stride=stride, pad=pad_size, num_filter=filter_count, workspace=work_space)
 		
-	if residual:
-		net = mx.symbol.Convolution(data=net, kernel=kernel_size, stride=stride, pad=pad_size, num_filter=filter_count, workspace=work_space)
-		for i in range(1):
-			net = residual_factory(net, filter_count, kernel_size, stride=(1, 1), pad=(1,1))
-		net = mx.symbol.Convolution(data=net, kernel=kernel_size, stride=stride, pad=pad_size, num_filter=filter_count, workspace=work_space)
+	# if residual:
+		# net = mx.symbol.Convolution(data=net, kernel=kernel_size, stride=stride, pad=pad_size, num_filter=filter_count, workspace=work_space)
+		# for i in range(1):
+			# net = residual_factory(net, filter_count, kernel_size, stride=(1, 1), pad=(1,1))
+		# net = mx.symbol.Convolution(data=net, kernel=kernel_size, stride=stride, pad=pad_size, num_filter=filter_count, workspace=work_space)
 			
-	if batch_norm:
-		net = mx.symbol.BatchNorm(net)
+	# if batch_norm:
+		# net = mx.symbol.BatchNorm(net)
 	
-	if act_type != "":
-		net = mx.symbol.Activation(net, act_type=act_type)
+	# if act_type != "":
+		# net = mx.symbol.Activation(net, act_type=act_type)
 	
-	if down_pool:
-		net = mx.symbol.Convolution(data=net, kernel=kernel_size, stride=stride, pad=pad_size, num_filter=filter_count*2, workspace=work_space)
-		net = mx.symbol.Pooling(net, pool_type="max", kernel=(2, 2), stride=(2, 2))
+	# if down_pool:
+		# net = mx.symbol.Convolution(data=net, kernel=kernel_size, stride=stride, pad=pad_size, num_filter=filter_count*2, workspace=work_space)
+		# net = mx.symbol.Pooling(net, pool_type="max", kernel=(2, 2), stride=(2, 2))
 
 	
-	return net
+	# return net
 
 def get_res_unet():
-	# Setting hyper parameter
-	kernel_size 	= (3, 3)
-	pad_size 		= (1, 1) # For the same size of filtering
-	filter_count 	= 8	 # Original unet use 64 and 2 layers of conv
+	source = mx.sym.Variable("data")
+	kernel_size = (3, 3)
+	pad_size = (1, 1)
+	filter_count = 8
+	pool1 = convolution_module(source, kernel_size, pad_size, filter_count=filter_count, down_pool=True)
+	net = pool1
+	pool2 = convolution_module(net, kernel_size, pad_size, filter_count=filter_count * 2, down_pool=True)
+	net = pool2
+	pool3 = convolution_module(net, kernel_size, pad_size, filter_count=filter_count * 4, down_pool=True)
+	net = pool3
+	pool4 = convolution_module(net, kernel_size, pad_size, filter_count=filter_count * 4, down_pool=True)
+	net = pool4
+	net = mx.sym.Dropout(net)
+	pool5 = convolution_module(net, kernel_size, pad_size, filter_count=filter_count * 8, down_pool=True)
+	net = pool5
+	net = convolution_module(net, kernel_size, pad_size, filter_count=filter_count * 4, up_pool=True)
+	net = convolution_module(net, kernel_size, pad_size, filter_count=filter_count * 4, up_pool=True)
 	
-	net 	= mx.symbol.Variable("data")
-	data 	= mx.sym.Variable('data')
-	label 	= mx.sym.Variable('softmax_label')
 	
-	# net 	= net-128
-	# net 	= net/128
-	net 	= net/255
+	# net = convolution_module(net, (4, 4), (0, 0), filter_count=filter_count * 4)
+	net = convolution_module(net, kernel_size, pad_size, filter_count=filter_count * 4)
+	net = mx.sym.Concat(*[pool3, net])
+	# print_inferred_shape(net)
+	net = mx.sym.Dropout(net)
+	net = convolution_module(net, kernel_size, pad_size, filter_count=filter_count * 4)
+	net = convolution_module(net, kernel_size, pad_size, filter_count=filter_count * 4, up_pool=True)
+	# print_inferred_shape(net)
 	
-	net		= convolution_module(net, kernel_size, pad_size, filter_count=filter_count*1, down_pool=True)
-	pool1	= net
-	net		= mx.symbol.Dropout(net)
+	net = mx.sym.Concat(*[pool2, net])
+	# print_inferred_shape(net)
+	net = mx.sym.Dropout(net)
+	net = convolution_module(net, kernel_size, pad_size, filter_count=filter_count * 4)
+	net = convolution_module(net, kernel_size, pad_size, filter_count=filter_count * 4, up_pool=True)
+	net = mx.sym.Concat(*[pool1, net])
+	net = mx.sym.Dropout(net)
+	net = convolution_module(net, kernel_size, pad_size, filter_count=filter_count * 2)
+	net = convolution_module(net, kernel_size, pad_size, filter_count=filter_count * 2, up_pool=True)
 	
-	net		= convolution_module(net, kernel_size, pad_size, filter_count=filter_count*2, down_pool=True)
-	pool2	= net
-	net		= mx.symbol.Dropout(net)
+	net = convolution_module(net, kernel_size, pad_size, filter_count=256, batch_norm=False, act_type="")
+	# print_inferred_shape(net)
 	
-	net		= convolution_module(net, kernel_size, pad_size, filter_count=filter_count*4, down_pool=True)
-	pool3	= net
-	net		= mx.symbol.Dropout(net)
+	# net = mx.symbol.Flatten(net)
+	return mx.symbol.LogisticRegressionOutput(data=net, name='softmax')
 	
-	net		= convolution_module(net, kernel_size, pad_size, filter_count=filter_count*8)
-
-	net		= mx.symbol.Dropout(net)
-	# net		= mx.symbol.Concat(*[pool3, net])
-	net 	= pool3 + net
-	net		= convolution_module(net, kernel_size, pad_size, filter_count=filter_count*4)
-	net		= convolution_module(net, kernel_size, pad_size, filter_count=filter_count*4, up_pool=True)
-	
-	net		= mx.symbol.Dropout(net)	
-	# net		= mx.symbol.Concat(*[pool2, net])
-	net 	= pool2 + net
-	net		= convolution_module(net, kernel_size, pad_size, filter_count=filter_count*2)
-	net		= convolution_module(net, kernel_size, pad_size, filter_count=filter_count*2, up_pool=True)
-	
-	net		= mx.symbol.Dropout(net)
-	# net		= mx.symbol.Concat(*[pool1, net])
-	net 	= pool1 + net
-	net		= convolution_module(net, kernel_size, pad_size, filter_count=filter_count*1)
-	net		= convolution_module(net, kernel_size, pad_size, filter_count=filter_count*1, up_pool=True)
-	
-	net		= mx.symbol.Dropout(net)	
-	net		= convolution_module(net, kernel_size, pad_size, filter_count=tempo, batch_norm=False, act_type="")
-	
-	# embed_label = mx.sym.Embedding(data=label, input_dim=vocab_size, output_dim=num_embed, name='vocab_embed')
-	# net = mx.symbolbol.Flatten(net)
-	# Reshape the label
-	# src_label 	= mx.symbol.Reshape(data=label, target_shape=(0, 20*256*256))
-	# dst_label   = mx.nd.zeros()
-	# net 	= mx.symbol.LogisticRegressionOutput(data=net, name='softmax')
-	net 	= mx.symbol.Softmax(data=net, label=label, prob_label=True, act_type=decoder_act)
-	# net 	= mx.sym.softmax_cross_entropy(net, label, name="softmax")
-	return net
-	
-	# label = mx.sym.Reshape(data=label, target_shape=(0,))
-	# sm = mx.sym.SoftmaxOutput(data=pred, label=label, name='softmax')
-
-    # return sm
 	
 
 

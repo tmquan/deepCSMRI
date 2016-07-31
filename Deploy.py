@@ -3,6 +3,7 @@ import mxnet as mx
 import timeit
 def deploy():
 	X = np.load('X_train.npy')
+	y = np.load('y_train.npy')
 	
 	# X = np.reshape(X, (30, 1, 512, 512))
 	print "X.shape", X.shape
@@ -11,12 +12,14 @@ def deploy():
 	# k=52
 	t=np.arange(1);
 	X_deploy = X[k,t,:,:]
+	y_full = y[k,t,:,:]
 	
 	X_deploy = np.expand_dims(X_deploy, axis=0)
+	y_full   = np.expand_dims(y_full, axis=0)
 	# X_deploy = X
 	print "X_deploy.shape", X_deploy.shape
 	# Load model
-	iter = 0 
+	iter = 2 
 	model 	= mx.model.FeedForward.load('model', iter, ctx=mx.gpu(1))
 	# model_recon 	= mx.model.FeedForward.load('model', iter)
 	
@@ -32,10 +35,11 @@ def deploy():
 	
 	print pred.shape
 	# pred  = np.reshape(pred, (20, 256, 256))
-	# pred = np.argmax(pred, axis=1)
+	pred = np.argmax(pred, axis=1)
 	print pred.shape
 	skimage.io.imsave('y_pred.tif', np.float32(pred))
 	skimage.io.imsave('y_zero.tif', np.float32(X_deploy))
+	skimage.io.imsave('y_full.tif', np.float32(y_full))
 	# pred  = pred[1,:,:]
 	
 	
