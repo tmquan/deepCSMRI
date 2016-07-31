@@ -26,7 +26,7 @@ def get_model():
 	
 	model = mx.model.FeedForward(ctx=devs,
 		symbol          = network,
-		num_epoch       = 1,
+		num_epoch       = 5,
 		learning_rate	= 0.001,
         wd				= 0.000000001,
         momentum		= 0.9,
@@ -102,7 +102,7 @@ def train():
 	##################################################################################
 	# y = np.reshape(y, (-1, tempo*width*width))
 	##################################################################################
-	nb_iter 		= 201
+	nb_iter 		= 1001
 	epochs_per_iter = 1 
 	batch_size 		= 1
 	

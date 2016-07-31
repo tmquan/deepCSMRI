@@ -96,7 +96,7 @@ def get_res_unet():
 	source = source/255.0
 	kernel_size = (3, 3)
 	pad_size = (1, 1)
-	filter_count = 20
+	filter_count = 40
 	pool1 = convolution_module(source, kernel_size, pad_size, filter_count=filter_count, down_pool=True)
 	net = pool1
 	pool2 = convolution_module(net, kernel_size, pad_size, filter_count=filter_count * 2, down_pool=True)
@@ -114,19 +114,19 @@ def get_res_unet():
 	
 	# net = convolution_module(net, (4, 4), (0, 0), filter_count=filter_count * 4)
 	net = convolution_module(net, kernel_size, pad_size, filter_count=filter_count * 4)
-	net = mx.sym.Concat(*[pool3, net])
+	# net = mx.sym.Concat(*[pool3, net])
 	# print_inferred_shape(net)
 	net = mx.sym.Dropout(net)
 	net = convolution_module(net, kernel_size, pad_size, filter_count=filter_count * 4)
 	net = convolution_module(net, kernel_size, pad_size, filter_count=filter_count * 4, up_pool=True)
 	# print_inferred_shape(net)
 	
-	net = mx.sym.Concat(*[pool2, net])
+	# net = mx.sym.Concat(*[pool2, net])
 	# print_inferred_shape(net)
 	net = mx.sym.Dropout(net)
 	net = convolution_module(net, kernel_size, pad_size, filter_count=filter_count * 4)
 	net = convolution_module(net, kernel_size, pad_size, filter_count=filter_count * 4, up_pool=True)
-	net = mx.sym.Concat(*[pool1, net])
+	# net = mx.sym.Concat(*[pool1, net])
 	net = mx.sym.Dropout(net)
 	net = convolution_module(net, kernel_size, pad_size, filter_count=filter_count * 2)
 	net = convolution_module(net, kernel_size, pad_size, filter_count=filter_count * 2, up_pool=True)

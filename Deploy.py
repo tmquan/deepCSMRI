@@ -20,7 +20,7 @@ def deploy():
 	# X_deploy = X
 	print "X_deploy.shape", X_deploy.shape
 	# Load model
-	iter = 2 
+	iter = 4 
 	model 	= mx.model.FeedForward.load('model', iter, ctx=mx.gpu(1))
 	# model_recon 	= mx.model.FeedForward.load('model', iter)
 	
@@ -35,8 +35,11 @@ def deploy():
 	print end - start
 	
 	print pred.shape
-	pred  = np.reshape(pred, (-1, 256, tempo, 256, 256))
-	pred = np.argmax(pred, axis=1)
+	pred = np.reshape(pred, (-1, 256, tempo, 256, 256))
+	pred = 1.0*(pred>0.5)
+	pred = np.cumsum(pred, axis=1)
+	# pred = np.argmax(pred, axis=1)
+	pred = pred[:,-1,:,:,:]
 	print pred.shape
 	skimage.io.imsave('y_pred.tif', np.float32(pred))
 	skimage.io.imsave('y_zero.tif', np.float32(X_deploy))
