@@ -41,8 +41,12 @@ from Utility import *
 
     # return net
 
-
+def primal_factory(data, num_filter, kernel, stride, pad):
+	conv 			= mx.symbol.Convolution(data = data, num_filter = num_filter, kernel = kernel, stride = stride, pad = pad)
+	work_space=4096
+	deconv 			= mx.symbol.Deconvolution(data = data, num_filter = num_filter, kernel = kernel, stride = stride, pad = pad, workspace = work_space)
 	
+	return conv+deconv
 def residual_factory(data, num_filter, kernel, stride, pad):	
 	identity_data 	= data
 	conv1 			= mx.symbol.Convolution(data = data, num_filter = num_filter, kernel = kernel, stride = stride, pad = pad)
@@ -73,11 +77,14 @@ def convolution_module(net, kernel_size, pad_size, filter_count, stride=(1, 1), 
 		net = mx.symbol.Convolution(data=net, kernel=kernel_size, stride=stride, pad=pad_size, num_filter=filter_count, workspace=work_space)
 		
 	if residual:
-		net = mx.symbol.Convolution(data=net, kernel=kernel_size, stride=stride, pad=pad_size, num_filter=filter_count, workspace=work_space)
-		for i in range(1):
-			net = residual_factory(net, filter_count, kernel_size, stride=(1, 1), pad=(1,1))
-		net = mx.symbol.Convolution(data=net, kernel=kernel_size, stride=stride, pad=pad_size, num_filter=filter_count, workspace=work_space)
-			
+		# net = mx.symbol.Convolution(data=net, kernel=kernel_size, stride=stride, pad=pad_size, num_filter=filter_count, workspace=work_space)
+		# for i in range(3):
+			# net = residual_factory(net, filter_count, kernel_size, stride=(1, 1), pad=(1,1))
+		# net = mx.symbol.Convolution(data=net, kernel=kernel_size, stride=stride, pad=pad_size, num_filter=filter_count, workspace=work_space)
+		net = primal_factory(net, filter_count, kernel_size, stride=(1, 1), pad=(1,1))
+		net = residual_factory(net, filter_count, kernel_size, stride=(1, 1), pad=(1,1))
+		net = primal_factory(net, filter_count, kernel_size, stride=(1, 1), pad=(1,1))
+		
 	if batch_norm:
 		net = mx.symbol.BatchNorm(net)
 	
@@ -97,7 +104,7 @@ def get_res_unet():
 	net = source
 	kernel_size = (3, 3)
 	pad_size = (1, 1)
-	filter_count = 64
+	filter_count = 32
 		
 	net		= convolution_module(net, kernel_size, pad_size, filter_count=filter_count*1, down_pool=True)
 	pool1	= net
