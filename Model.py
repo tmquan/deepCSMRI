@@ -93,9 +93,10 @@ def residual_factory(data, num_filter, kernel, stride, pad):
 
 def get_res_unet():
 	source = mx.sym.Variable("data")
+	source = source/255.0
 	kernel_size = (3, 3)
 	pad_size = (1, 1)
-	filter_count = 8
+	filter_count = 20
 	pool1 = convolution_module(source, kernel_size, pad_size, filter_count=filter_count, down_pool=True)
 	net = pool1
 	pool2 = convolution_module(net, kernel_size, pad_size, filter_count=filter_count * 2, down_pool=True)
@@ -130,7 +131,7 @@ def get_res_unet():
 	net = convolution_module(net, kernel_size, pad_size, filter_count=filter_count * 2)
 	net = convolution_module(net, kernel_size, pad_size, filter_count=filter_count * 2, up_pool=True)
 	
-	net = convolution_module(net, kernel_size, pad_size, filter_count=256, batch_norm=False, act_type="")
+	net = convolution_module(net, kernel_size, pad_size, filter_count=256*tempo, batch_norm=False, act_type="")
 	# print_inferred_shape(net)
 	
 	# net = mx.symbol.Flatten(net)

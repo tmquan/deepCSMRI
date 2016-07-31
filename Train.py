@@ -19,8 +19,8 @@ logger.setLevel(logging.DEBUG)
 ######################################################################################
 	
 def get_model():
-	# devs = [mx.gpu(2)]
-	devs = [mx.cpu(i) for i in range(8)]
+	devs = [mx.gpu(2)]
+	# devs = [mx.cpu(i) for i in range(16)]
 	# network = get_unet()
 	network = get_res_unet()
 	
@@ -104,7 +104,7 @@ def train():
 	##################################################################################
 	nb_iter 		= 201
 	epochs_per_iter = 1 
-	batch_size 		= 100
+	batch_size 		= 1
 	
 	model = get_model()
 	
@@ -160,7 +160,7 @@ def train():
 			model.fit(X = data_train, 
 							eval_metric = mx.metric.RMSE(),
 							eval_data   = data_valid)
-			del X_train, X_valid, y_train, y_valid
+			# del X_train, X_valid, y_train, y_valid
 		if iter%1==0:
 			model.save('model', iter)
 if __name__ == '__main__':

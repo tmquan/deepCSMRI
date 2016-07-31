@@ -1,4 +1,5 @@
 from Utility import *
+from DeepCSMRI import *
 import mxnet as mx
 import timeit
 def deploy():
@@ -7,15 +8,15 @@ def deploy():
 	
 	# X = np.reshape(X, (30, 1, 512, 512))
 	print "X.shape", X.shape
-	k=np.arange(1)
+	k=1
 	# k=50
 	# k=52
-	t=np.arange(1);
-	X_deploy = X[k,t,:,:]
-	y_full = y[k,t,:,:]
+	t=np.arange(tempo);
+	X_deploy = X[1:2,t,:,:]
+	y_full = y[1:2,t,:,:]
 	
-	X_deploy = np.expand_dims(X_deploy, axis=0)
-	y_full   = np.expand_dims(y_full, axis=0)
+	# X_deploy = np.expand_dims(X_deploy, axis=0)
+	# y_full   = np.expand_dims(y_full, axis=0)
 	# X_deploy = X
 	print "X_deploy.shape", X_deploy.shape
 	# Load model
@@ -34,7 +35,7 @@ def deploy():
 	print end - start
 	
 	print pred.shape
-	# pred  = np.reshape(pred, (20, 256, 256))
+	pred  = np.reshape(pred, (-1, 256, tempo, 256, 256))
 	pred = np.argmax(pred, axis=1)
 	print pred.shape
 	skimage.io.imsave('y_pred.tif', np.float32(pred))
